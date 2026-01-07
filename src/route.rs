@@ -1,48 +1,121 @@
-use std::cmp::{Eq, Ord, PartialEq, PartialOrd};
+use std::{cmp::Ordering, collections::BinaryHeap};
 
-pub struct Stretch<'a> {
+pub struct Stretch {
     speed: u32,
     length: u32,
     cars: u32,
     cap: u32,
-    connections: Vec<&'a Self>,
 }
 
-impl Stretch<'_> {
+impl Stretch {
     fn weight(&self) -> f32 {
         let lov = self.length as f32 / self.speed as f32;
-        let noc = (self.cars as f32 / self.cap as f32);
+        let noc = self.cars as f32 / self.cap as f32;
         let noc4 = noc * noc * noc * noc;
         (0.15 * noc4 + 1.0) * lov
     }
 }
 
-impl PartialEq for Stretch<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        // Im gonna say that two stretches are effectively equal
-        // if they are within some tolerance of eachother, this
-        // may not actually be needed but whatever
+#[derive(Clone, Copy, Debug)]
+struct F32Ord(f32);
 
-        (self.weight() - other.weight()).abs() <= 0.001
+impl PartialEq for F32Ord {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.to_bits() == other.0.to_bits()
     }
 }
+impl Eq for F32Ord {}
 
-impl Eq for Stretch<'_> {}
-
-impl PartialOrd for Stretch<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl PartialOrd for F32Ord {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Stretch<'_> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self == other {
-            std::cmp::Ordering::Equal
-        } else if self.weight() < other.weight() {
-            std::cmp::Ordering::Less
-        } else {
-            std::cmp::Ordering::Greater
+impl Ord for F32Ord {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.total_cmp(&other.0)
+    }
+}
+
+pub struct Map {
+    stretches: Vec<Stretch>,
+    adj: Vec<Vec<usize>>,
+}
+
+impl Map {
+    fn new() -> Self {
+        Self {
+            stretches: Vec::new(),
+            adj: Vec::new(),
         }
+    }
+
+    fn with_capacity(cap: usize) -> Self {
+        Self {
+            stretches: Vec::with_capacity(cap),
+            adj: Vec::new(),
+        }
+    }
+
+    fn push(&mut self, stretch: Stretch) {
+        self.stretches.push(stretch);
+        self.adj.push(Vec::new());
+    }
+
+    fn connect(&mut self, one: usize, two: usize) {
+        self.adj[one].push(two);
+        self.adj[two].push(one);
+    }
+
+    fn solve(&self, start: usize, end: usize) -> Vec<usize> {
+        if start >= self.stretches.len() || end >= self.stretches.len() {
+            return Vec::new();
+        }
+
+        let n = self.stretches.len();
+        let mut dist = vec![f32::INFINITY; n];
+        let mut prev = vec![None::<usize>; n];
+
+        let mut heap = BinaryHeap::<(std::cmp::Reverse<F32Ord>, usize)>::new();
+
+        dist[start] = self.stretches[start].weight();
+        heap.push((std::cmp::Reverse(F32Ord(dist[start])), start));
+
+        while let Some((std::cmp::Reverse(F32Ord(d)), u)) = heap.pop() {
+            if d != dist[u] {
+                continue;
+            }
+            if u == end {
+                break;
+            }
+
+            for &v in &self.adj[u] {
+                let alt = d + self.stretches[v].weight();
+                if alt < dist[v] {
+                    dist[v] = alt;
+                    prev[v] = Some(u);
+                    heap.push((std::cmp::Reverse(F32Ord(alt)), v));
+                }
+            }
+        }
+
+        if !dist[end].is_finite() {
+            return Vec::new();
+        }
+
+        let mut path = Vec::new();
+        let mut cur = end;
+        path.push(cur);
+        while cur != start {
+            if let Some(p) = prev[cur] {
+                cur = p;
+                path.push(cur);
+            } else {
+                return Vec::new();
+            }
+        }
+        path.reverse();
+        path
     }
 }
