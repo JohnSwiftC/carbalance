@@ -44,31 +44,31 @@ pub struct Map {
 }
 
 impl Map {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             stretches: Vec::new(),
             adj: Vec::new(),
         }
     }
 
-    fn with_capacity(cap: usize) -> Self {
+    pub fn with_capacity(cap: usize) -> Self {
         Self {
             stretches: Vec::with_capacity(cap),
             adj: Vec::new(),
         }
     }
 
-    fn push(&mut self, stretch: Stretch) {
+    pub fn push(&mut self, stretch: Stretch) {
         self.stretches.push(stretch);
         self.adj.push(Vec::new());
     }
 
-    fn connect(&mut self, one: usize, two: usize) {
+    pub fn connect(&mut self, one: usize, two: usize) {
         self.adj[one].push(two);
         self.adj[two].push(one);
     }
 
-    fn solve(&self, start: usize, end: usize) -> Vec<usize> {
+    pub fn solve(&self, start: usize, end: usize) -> Vec<usize> {
         if start >= self.stretches.len() || end >= self.stretches.len() {
             return Vec::new();
         }

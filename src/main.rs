@@ -3,5 +3,5 @@ pub mod route;
 use route::{Map, Stretch};
 
 fn main() {
-    println!("Hello, world!");
+    let mut map = Map::with_capacity(15);
 }
