@@ -1,4 +1,5 @@
-use std::{cmp::Ordering, collections::BinaryHeap};
+use std::io::Write;
+use std::{cmp::Ordering, collections::BinaryHeap, fs::File, path::Path};
 
 pub struct Stretch {
     pub speed: u32,
@@ -117,5 +118,27 @@ impl Map {
         }
         path.reverse();
         path
+    }
+
+    pub fn write_to_file<T: AsRef<Path>>(&self, name: T) -> std::io::Result<()> {
+        let mut file = File::create(name)?;
+
+        for stretch in &self.stretches {
+            file.write_all(&[0])?;
+            file.write_all(&stretch.speed.to_le_bytes())?;
+            file.write_all(&stretch.length.to_le_bytes())?;
+            file.write_all(&stretch.cars.to_le_bytes())?;
+            file.write_all(&stretch.cap.to_le_bytes())?;
+            file.write_all(&[b';'])?;
+        }
+
+        for (i, adj) in self.adj.iter().enumerate() {
+            file.write_all(&[1])?;
+            todo!();
+            // TODO:
+            // rework loading so it just uses the predefined adjacency array
+        }
+
+        Ok(())
     }
 }
