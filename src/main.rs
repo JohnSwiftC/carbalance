@@ -1,9 +1,44 @@
 pub mod route;
 pub mod storage;
 
+use bevy::prelude::*;
 use route::{Map, Stretch};
+mod road_render;
+use road_render::*;
 
-fn main() {}
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(RoadRenderPlugin)
+        .insert_resource(make_demo_graph())
+        .run();
+}
+
+fn make_demo_graph() -> RoadRenderGraph {
+    RoadRenderGraph {
+        junctions: vec![
+            Junction {
+                pos: Vec2::new(-200.0, 0.0),
+            },
+            Junction {
+                pos: Vec2::new(0.0, 120.0),
+            },
+            Junction {
+                pos: Vec2::new(200.0, 0.0),
+            },
+        ],
+        roads: vec![
+            RoadGeom {
+                road_id: 0,
+                junctions: vec![0, 1],
+            },
+            RoadGeom {
+                road_id: 5,
+                junctions: vec![1, 2],
+            },
+        ],
+    }
+}
 
 pub fn build_sample_map() -> Map {
     let mut map = Map::with_capacity(15);
