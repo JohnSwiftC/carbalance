@@ -63,9 +63,9 @@ impl Map {
         self.adj.push(Vec::new());
     }
 
-    pub fn connect(&mut self, one: usize, two: usize) {
-        self.adj[one].push(two);
-        self.adj[two].push(one);
+    pub fn connect(&mut self, one: u32, two: u32) {
+        self.adj[one as usize].push(two as usize);
+        self.adj[two as usize].push(one as usize);
     }
 
     pub fn solve(&self, start: usize, end: usize) -> Vec<usize> {

@@ -47,4 +47,9 @@ fn handle_new_stretch(bytes: &[u8], map: &mut Map) {
     });
 }
 
-fn handle_new_connection(bytes: &[u8], map: &mut Map) {}
+fn handle_new_connection(bytes: &[u8], map: &mut Map) {
+    let one: u32 = u32::from_le_bytes(bytes[0..=3].try_into().unwrap());
+    let two: u32 = u32::from_le_bytes(bytes[4..=7].try_into().unwrap());
+
+    map.connect(one, two);
+}
