@@ -1,4 +1,5 @@
 pub mod route;
+pub mod storage;
 
 use route::{Map, Stretch};
 
