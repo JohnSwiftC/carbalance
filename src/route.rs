@@ -69,6 +69,10 @@ impl Map {
         self.adj[two as usize].push(one as usize);
     }
 
+    pub fn connect_one_way(&mut self, one: u32, two: u32) {
+        self.adj[one as usize].push(two as usize);
+    }
+
     pub fn solve(&self, start: usize, end: usize) -> Vec<usize> {
         if start >= self.stretches.len() || end >= self.stretches.len() {
             return Vec::new();
@@ -123,20 +127,20 @@ impl Map {
     pub fn write_to_file<T: AsRef<Path>>(&self, name: T) -> std::io::Result<()> {
         let mut file = File::create(name)?;
 
-        for stretch in &self.stretches {
+        for (i, stretch) in self.stretches.iter().enumerate() {
             file.write_all(&[0])?;
             file.write_all(&stretch.speed.to_le_bytes())?;
             file.write_all(&stretch.length.to_le_bytes())?;
             file.write_all(&stretch.cars.to_le_bytes())?;
             file.write_all(&stretch.cap.to_le_bytes())?;
             file.write_all(&[b';'])?;
-        }
 
-        for (i, adj) in self.adj.iter().enumerate() {
             file.write_all(&[1])?;
-            todo!();
-            // TODO:
-            // rework loading so it just uses the predefined adjacency array
+            file.write_all(&(i as u32).to_le_bytes())?;
+            for a in &self.adj[i] {
+                file.write_all(&(*a as u32).to_le_bytes())?;
+            }
+            file.write_all(&[b';'])?;
         }
 
         Ok(())

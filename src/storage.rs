@@ -10,16 +10,18 @@ pub fn load_map<T: AsRef<Path>>(path: T) -> Result<Map, std::io::Error> {
     let mut buf = Vec::new();
     while let Ok(size) = reader.read_until(b';', &mut buf) {
         if size == 0 {
-            continue;
+            break;
         }
 
         match buf[0] {
-            0 => handle_new_stretch(&buf[1..size], &mut map),
-            1 => handle_new_connection(&buf[1..size], &mut map),
+            0 => handle_new_stretch(&buf[1..size - 1], &mut map),
+            1 => handle_new_connection(&buf[1..size - 1], &mut map),
             n => {
                 eprintln!("Invalid operation character: {}", n)
             }
         }
+
+        buf.clear();
     }
 
     Ok(map)
@@ -48,8 +50,19 @@ fn handle_new_stretch(bytes: &[u8], map: &mut Map) {
 }
 
 fn handle_new_connection(bytes: &[u8], map: &mut Map) {
-    let one: u32 = u32::from_le_bytes(bytes[0..=3].try_into().unwrap());
-    let two: u32 = u32::from_le_bytes(bytes[4..=7].try_into().unwrap());
+    let mut left = 0;
+    let mut right = 3;
 
-    map.connect(one, two);
+    let from = u32::from_le_bytes(bytes[left..=right].try_into().unwrap());
+
+    left += 4;
+    right += 4;
+
+    while right < bytes.len() {
+        let to = u32::from_le_bytes(bytes[left..=right].try_into().unwrap());
+        map.connect_one_way(from, to);
+
+        left += 4;
+        right += 4;
+    }
 }
