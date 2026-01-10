@@ -1,10 +1,10 @@
 use std::{cmp::Ordering, collections::BinaryHeap};
 
 pub struct Stretch {
-    speed: u32,
-    length: u32,
-    cars: u32,
-    cap: u32,
+    pub speed: u32,
+    pub length: u32,
+    pub cars: u32,
+    pub cap: u32,
 }
 
 impl Stretch {
